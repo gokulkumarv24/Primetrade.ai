@@ -1,17 +1,18 @@
 const mongoose = require('mongoose');
-const dns = require('node:dns');
 const config = require('./index');
-
-// Use Google DNS to resolve MongoDB Atlas SRV records
-dns.setServers(['8.8.8.8', '8.8.4.4']);
 
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(config.mongodbUri);
+    console.log('Connecting to MongoDB...');
+    const conn = await mongoose.connect(config.mongodbUri, {
+      serverSelectionTimeoutMS: 30000,
+    });
     console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
     console.error(`Database connection error: ${error.message}`);
-    process.exit(1);
+    // Retry after 5 seconds instead of crashing
+    console.log('Retrying connection in 5 seconds...');
+    setTimeout(connectDB, 5000);
   }
 };
 
